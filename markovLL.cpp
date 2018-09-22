@@ -84,6 +84,11 @@ class markovLL{
             }
         }
         
+        string nextInChain(vector<string> currentState){
+            //TODO: create the instances of the first word, find the vector of possibilities, return random word
+        }
+    
+        
     private:
         vector<markovNode*> findWord(string text){
             // Creates a vector of all instances of a given word
