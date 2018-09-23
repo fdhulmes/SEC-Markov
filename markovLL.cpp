@@ -1,29 +1,20 @@
 #include <iostream>
 #include <vector>
+#include <map>
+#include <string>
+#include <cstdlib>
+#include "markovLL.h"
 using namespace std;
 
-class markovLL{
+int rand();
     
-    struct markovNode{
-        string text;
-        markovNode *next;
-        markovNode *prev;
         
-        markovNode(string text){
-            next = NULL;
-            prev = NULL;
-            this.text = text;
-        }
-    };
-    
-    markovNode *head;
-    public:
-    
-        markovLL(){
+        markovLL::markovLL(){
             head = NULL;
         }
     
-        void addNode(string text){
+        void markovLL::addNode(string text){
+            // Adds a new node onto the linked list
             markovNode *newNode = new markovNode(text);
             // Initialize LL
             if(head == NULL){
@@ -41,72 +32,77 @@ class markovLL{
             return;
         }
         
-        vector<string> nextWords(vector<string> currentState, vector<markovNode*> instances){
-            /* IMPORTANT: currentState array needs to be built backwards
-                ex: I am human -> [human, am, I]
-             Calculate the possible order based on the number of words put in */
-            int order = currentState.size();
-            //Return vector
-            vector<string> v;
-            // Find the first word in the current state
-            string last = currentState[0];
-            // Iterate through each instance of the word
-            for(int i = 0; i < instances.size(); i++){
-                int count = 0;
-                bool flag = true;
-                markovNode *currentInstance = instances[i];
-                markovNode *tmp = currentInstance;
-                //Check if the nodes prev values match the current state
-                while(count < order){
-                    if(tmp != NULL){
-                        if(tmp->text.compare(currentState[count]) != 0){
-                            flag = false;
-                        }
-                        tmp = tmp->prev;
-                    }
-                    else{
-                        flag = false;
-                    }
-                    count++;
-                }
-                // If the next node exists and the currentstate matches, add the next word to possibilities
-                if(flag && currentInstance->next != NULL){
-                    v.push_back(currentInstance->next->text);
-                }
-            }
-            if(v.size() > 0){
-                return v;
-            }
-            else{
-                // If matches aren't found, reduce the order
-                currentState.pop_back();
-                return nextWords(currentState, instances);
-            }
-        }
-        
-        string nextInChain(vector<string> currentState){
-            //TODO: create the instances of the first word, find the vector of possibilities, return random word
-        }
-    
-        
-    private:
-        vector<markovNode*> findWord(string text){
-            // Creates a vector of all instances of a given word
-            vector<markovNode*> v;
+        void markovLL::buildMap(){
+            // Builds the map using the linked list
             markovNode *tmp = head;
-            // Iterate through the LL, finding all nodes with the same text
+            // Iterate through the list
             while(tmp != NULL){
-                if(text.compare(tmp->text) == 0){
-                    // Append the node to the vector
-                    v.push_back(tmp);
+                // If there is a next word...
+                if(tmp->next !=NULL){
+                    // Add the next word onto the map
+                    table[tmp->text].push_back(tmp->next->text);
+                    // If there is a prev word ...
+                    if(tmp->prev != NULL){
+                        // Add both words together as an entry as well
+                        string twoWords = tmp->prev->text + " " + tmp->text;
+                        table[twoWords].push_back(tmp->next->text);
+                    }
                 }
                 tmp = tmp->next;
             }
-            return v;
+            return;
         }
-    
-    
-};
+        
+        void markovLL::printList(){
+            // Prints the LL like a tweet
+            markovNode *tmp = head;
+            int cnt = 0;
+            while(tmp != NULL){
+                cout << tmp->text + " ";
+                // Go to next line every ~80 characters
+                cnt += tmp->text.length() + 1;
+                if(cnt > 80){
+                    cout << endl;
+                    cnt = 0;
+                }
+                tmp = tmp->next;
+            }
+        }
+        
+        int markovLL::size(){
+            // Returns the size of the LL
+            int c = 0;
+            markovNode *tmp = head;
+            while(tmp != NULL){
+                c += 1;
+                tmp = tmp->next;
+            }
+            return c;
+        }
+        
+        string markovLL::findWord(int index){
+            // Returns a single word at the given index
+            int i = 0;
+            markovNode *tmp = head;
+            while(i < index && tmp != NULL){
+                i += 1;
+                tmp = tmp->next;
+            }
+            return tmp->text;
+        }
+        
+        string markovLL::getText(string in){
+            // Returns a random string from the training data
+            if(table.find(in) == table.end()){
+                // in doesn't exist, return empty
+                return "";
+            }
+            else{
+                int s = rand() % table[in].size();
+                return table[in][s];
+            }
+            
+        }
 
 
 
